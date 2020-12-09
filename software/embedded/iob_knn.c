@@ -1,6 +1,7 @@
 #include "interconnect.h"
 #include "iob_knn.h"
 #include "KNNsw_reg_gen.h"
+#include <iob-uart.h>
 
 
 int knn_set_input(short x, short y) {
@@ -11,6 +12,15 @@ int knn_set_input(short x, short y) {
  
 }
 
+
+int main(){
+ //uart_printf("%d \t%d \t%d\n", k, x[k].x, x[k].y);
+ long temp = knn_set_input(1000,2000);
+ uart_printf(%d, temp);
+
+
+return 1;
+}
 /*
 //base address
 static int base;
