@@ -47,20 +47,25 @@ struct neighbor {
 
 //square distance between 2 points a and b
 unsigned int sq_dist( struct datum a, struct datum b) {
+	//timer_start();
   short X = a.x-b.x;
   unsigned int X2=X*X;
   short Y = a.y-b.y;
   unsigned int Y2=Y*Y;
+  //timer_stop();
   return (X2 + Y2);
+  
 }
 
 //insert element in ordered array of neighbours
 void insert (struct neighbor element, unsigned int position) {
+	//timer_start();
   for (int j=K-1; j>position; j--)
     neighbor[j] = neighbor[j-1];
-
+    
   neighbor[position] = element;
 
+	//timer_stop();
 }
 
 
@@ -68,15 +73,15 @@ void insert (struct neighbor element, unsigned int position) {
 int main() {
 
   unsigned long long elapsed;
+  unsigned long long elapsedTemp;
   unsigned int elapsedu;
+  unsigned int elapseduTemp;
 
-  //init uart and timer
+  //init uart
   uart_init(UART_BASE, FREQ/BAUD);
-  uart_printf("\nInit timer\n");
   uart_txwait();
 
-  timer_init(TIMER_BASE);
-  //read current timer count, compute elapsed time
+  
   //elapsed  = timer_get_count();
   //elapsedu = timer_time_us();
 
@@ -124,6 +129,8 @@ int main() {
   //
 
   //start knn here
+  timer_init(TIMER_BASE);
+  uart_printf("INIT TIMER\n");
   
   for (int k=0; k<M; k++) { //for all test points
   //compute distances to dataset points
@@ -139,23 +146,35 @@ int main() {
 #ifdef DEBUG
     uart_printf("Datum \tX \tY \tLabel \tDistance\n");
 #endif
+
+	//elapsedTemp  = timer_get_count();
+    //elapseduTemp = timer_time_us();
+    
     for (int i=0; i<N; i++) { //for all dataset points
       //compute distance to x[k]
+      //timer_start();
       unsigned int d = sq_dist(x[k], data[i]);
-
+	
       //insert in ordered list
       for (int j=0; j<K; j++)
         if ( d < neighbor[j].dist ) {
           insert( (struct neighbor){i,d}, j);
           break;
         }
-
+		
 #ifdef DEBUG
       //dataset
       uart_printf("%d \t%d \t%d \t%d \t%d\n", i, data[i].x, data[i].y, data[i].label, d);
 #endif
 
     }
+    //timer_stop();
+    /*
+    elapsed  = timer_get_count() - elapsedTemp;
+    elapsedu = timer_time_us()  - elapseduTemp; 
+    uart_printf("\nExecution time dist+insert : %d clock cycles", (unsigned int) elapsed);
+	uart_printf("\nExecution time dist+insert: %dus @%dMHz\n\n", elapsedu, FREQ/1000000);
+    */
 
     
     //classify test point
@@ -164,7 +183,10 @@ int main() {
     int votes[C] = {0};
     int best_votation = 0;
     int best_voted = 0;
-
+	
+	//elapsedTemp  = timer_get_count();
+    //elapseduTemp = timer_time_us();
+    
     //make neighbours vote
     for (int j=0; j<K; j++) { //for all neighbors
       if ( (++votes[data[neighbor[j].idx].label]) > best_votation ) {
@@ -172,20 +194,46 @@ int main() {
         best_votation = votes[best_voted];
       }
     }
+    
+    /*
+    elapsed  = timer_get_count() - elapsedTemp;
+    elapsedu = timer_time_us()  - elapseduTemp; 
+    uart_printf("\nExecution time vote : %d clock cycles", (unsigned int) elapsed);
+	uart_printf("\nExecution time vote: %dus @%dMHz\n\n", elapsedu, FREQ/1000000);
+	*/
 
     x[k].label = best_voted;
 
     votes_acc[best_voted]++;
     
 #ifdef DEBUG
+	//elapsedTemp  = timer_get_count();
+    //elapseduTemp = timer_time_us();
+    
     uart_printf("\n\nNEIGHBORS of x[%d]=(%d, %d):\n", k, x[k].x, x[k].y);
     uart_printf("K \tIdx \tX \tY \tDist \t\tLabel\n");
     for (int j=0; j<K; j++)
       uart_printf("%d \t%d \t%d \t%d \t%d \t%d\n", j+1, neighbor[j].idx, data[neighbor[j].idx].x,  data[neighbor[j].idx].y, neighbor[j].dist,  data[neighbor[j].idx].label);
-    
+    /*
+    elapsed  = timer_get_count() - elapsedTemp;
+    elapsedu = timer_time_us()  - elapseduTemp; 
+    uart_printf("\nExecution time neigbors determin : %d clock cycles", (unsigned int) elapsed);
+	uart_printf("\nExecution time neigbors determin: %dus @%dMHz\n\n", elapsedu, FREQ/1000000);
+	
+	elapsedTemp  = timer_get_count();
+    elapseduTemp = timer_time_us();
+    */
     uart_printf("\n\nCLASSIFICATION of x[%d]:\n", k);
     uart_printf("X \tY \tLabel\n");
     uart_printf("%d \t%d \t%d\n\n\n", x[k].x, x[k].y, x[k].label);
+    /*
+    elapsed  = timer_get_count() - elapsedTemp;
+    elapsedu = timer_time_us()  - elapseduTemp; 
+    uart_printf("\nExecution time classification : %d clock cycles", (unsigned int) elapsed);
+	uart_printf("\nExecution time classification: %dus @%dMHz\n\n", elapsedu, FREQ/1000000);
+	*/
+    
+
 
 #endif
 
@@ -193,8 +241,11 @@ int main() {
 
   //stop knn here
   //read current timer count, compute elapsed time
-  elapsedu = timer_time_us(TIMER_BASE);
-  uart_printf("\nExecution time: %dus @%dMHz\n\n", elapsedu, FREQ/1000000);
+	timer_stop();
+	elapsed  = timer_get_count();
+    elapsedu = timer_time_us(); 
+    uart_printf("\nExecution time sq_dist(): %d clock cycles", (unsigned int) elapsed);
+	uart_printf("\nExecution time sq_dist(): %dus @%dMHz\n\n", elapsedu, FREQ/1000000);
 
   
   //print classification distribution to check for statistical bias
