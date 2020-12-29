@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 `include "iob_lib.vh"
+`include "KNNsw_reg_w.vh" // ERIC: to not have to hardcode width
 
 module knn_core
   #(
@@ -15,10 +16,10 @@ module knn_core
     );
     
     
-`SIGNAL_SIGNED(X1, 16);
-`SIGNAL_SIGNED(Y1, 16);
-`SIGNAL_SIGNED(DIST1, 32);
-`SIGNAL2OUT(DIST,DIST1);
+`SIGNAL_SIGNED(X1, 16)
+`SIGNAL_SIGNED(Y1, 16)
+`SIGNAL_SIGNED(DIST1, 32)
+`SIGNAL2OUT(DIST,DIST1)
 
 `COMB begin
 X1=X;

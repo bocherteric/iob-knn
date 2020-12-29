@@ -1,25 +1,31 @@
 #include "interconnect.h"
 #include "iob_knn.h"
-#include "KNNsw_reg_gen.h"
-#include <iob-uart.h>
+#include "KNNsw_reg.h"
+
+#include "system.h"
+#include "periphs.h"
+#include "iob-uart.h"
+
 
 
 int knn_set_input(short x, short y) {
 		
-  IO_SET(base, KNN_X, x);
-  IO_SET(base, KNN_Y, y);
-  return IO_GET(base, KNN_DIST);
+  IO_SET(KNN_BASE, KNN_X, x);
+  IO_SET(KNN_BASE, KNN_Y, y);
+  return IO_GET(KNN_BASE, KNN_DIST);
  
 }
 
 
 int main(){
- //uart_printf("%d \t%d \t%d\n", k, x[k].x, x[k].y);
+
+ uart_init(UART_BASE,FREQ/BAUD);  
+ uart_printf("\n\n\nHello worlD!\n\n\n");
+ 
+
  long temp = knn_set_input(1000,2000);
- uart_printf(%d, temp);
+ uart_printf("\n\n%d\n\n", temp);
 
-
-return 1;
 }
 /*
 //base address
